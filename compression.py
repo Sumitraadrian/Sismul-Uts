@@ -34,11 +34,19 @@ def compress_audio(audio_bytes, bitrate='64k'):
     compressed_audio = audio.export(format="mp3", bitrate=bitrate)
     return compressed_audio
 
+def convert_audio_format(audio_bytes, target_format='mp3'):
+    audio = AudioSegment.from_file(BytesIO(audio_bytes))
+    output_buffer = BytesIO()
+    audio.export(output_buffer, format=target_format)
+    converted_audio_bytes = output_buffer.getvalue()
+    return converted_audio_bytes
+
+
 def main():
     st.title("Media Processing")
 
     # Sidebar untuk memilih opsi
-    selected = st.sidebar.selectbox("Pemrosesan Media", ["Resize Image", "Compress Audio"])
+    selected = st.sidebar.selectbox("Pemrosesan Media", ["Resize Image", "Compress Audio", "Convert Audio Format"])
 
     # Page Resize Gambar
     if selected == "Resize Image":
@@ -81,8 +89,31 @@ def main():
 
                 # Encoding ke base64 dan tampilkan link untuk mengunduh gambar
                 img_str = base64.b64encode(img_byte_arr.read()).decode()
-                href = f'<a href="data:image/jpg;base64,{img_str}" download="compressed_image.jpg">Unduh Gambar</a>'
+                original_filename = uploaded_image.name  # Nama asli file yang diunggah
+                download_filename = f"compressed_{original_filename}"  # Nama file hasil dengan awalan 'compressed_'
+                href = f'<a href="data:image/jpg;base64,{img_str}" download="{download_filename}">Unduh Gambar</a>'
                 st.markdown(href, unsafe_allow_html=True)
+    # Page Convert Audio Format
+    if selected == "Convert Audio Format":
+        st.header("Convert Audio Format")
+
+        uploaded_audio = st.file_uploader("Upload Audio File", type=["mp3", "wav"])
+        if uploaded_audio is not None:
+            st.write('Uploaded Audio File:', uploaded_audio.name)
+
+            target_format = st.radio("Pilih Format Tujuan", ["mp3", "wav"])
+            if st.button('Convert Audio'):
+                converted_audio_bytes = convert_audio_format(uploaded_audio.getvalue(), target_format)
+
+                st.audio(converted_audio_bytes, format=f'audio/{target_format}', start_time=0)
+
+                st.download_button(
+                    label=f"Download Converted Audio ({target_format.upper()})",
+                    data=converted_audio_bytes,
+                    file_name=f"converted_audio.{target_format}",
+                    mime=f"audio/{target_format}"
+                )
+                st.success("Audio converted successfully!")
     # Page Compress Audio
     elif selected == "Compress Audio":
         st.header("Compress Audio")
