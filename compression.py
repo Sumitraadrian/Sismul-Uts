@@ -46,7 +46,7 @@ def main():
     st.title("Media Processing")
 
     # Sidebar untuk memilih opsi
-    selected = st.sidebar.selectbox("Pemrosesan Media", ["Resize Image", "Compress Audio", "Convert Audio Format"])
+    selected = st.sidebar.selectbox("Media Processing", ["Resize Image", "Compress Audio", "Convert Audio Format"])
 
     # Page Resize Gambar
     if selected == "Resize Image":
